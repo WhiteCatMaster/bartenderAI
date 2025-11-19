@@ -1,0 +1,24 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "script"
+    },
+    "rules": {
+        // Reglas básicas que ayudan a prevenir errores comunes
+        "no-unused-vars": "warn",        // Advierte sobre variables no usadas
+        "no-undef": "error",             // Marca como error variables no definidas (ej. la Web Speech API)
+        "eqeqeq": "error",               // Requiere el uso de === en lugar de ==
+        "semi": ["error", "always"]      // Requiere puntos y comas
+    },
+    // Le dice a ESLint qué variables globales de navegador ignorar
+    "globals": {
+        "window": "readonly",
+        "document": "readonly",
+        "WebSocket": "readonly"
+    }
+}

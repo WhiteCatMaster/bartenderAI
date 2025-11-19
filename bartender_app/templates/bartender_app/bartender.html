@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>The Bartender Robot</title>
+    <title>The Bartender Robot - Leo</title>
     <style>
-        body { font-family: sans-serif; }
-        /* Estilos básicos para simular el avatar */
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
+        h1 { color: #333; }
+
+        /* Contenedor del Avatar */
         #bartender-avatar {
             width: 150px;
             height: 150px;
@@ -14,6 +16,8 @@
             position: relative;
             transition: all 0.1s;
         }
+
+        /* Elemento de la Boca */
         #mouth {
             position: absolute;
             bottom: 30px;
@@ -25,10 +29,21 @@
             border-radius: 5px;
             transition: all 0.1s;
         }
+
+        /* Clase para la animación de hablar */
         .mouth-open {
             height: 20px !important;
             background-color: pink !important;
             border-radius: 0 0 10px 10px !important;
+        }
+
+        #robot-status {
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #007bff;
+            background-color: #e6f0ff;
         }
     </style>
 </head>
@@ -52,6 +67,13 @@
         // Variables de estado
         let isListening = false;
         let mouthInterval;
+        let robotSocket = null; // Para el WebSocket
+
+        // --- Configuración y Elemento de Estado del Robot ---
+        const statusOutput = document.createElement('p');
+        statusOutput.id = 'robot-status';
+        statusOutput.textContent = 'Estado del Robot: Desconectado';
+        document.body.appendChild(statusOutput);
 
         // 1. Inicializa la Web Speech API
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -59,47 +81,54 @@
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        // --- MANEJO DE ESTADOS DE ESCUCHA ---
+        // --- MANEJO DE ESTADOS DE ESCUCHA CONTINUA ---
 
+        function startContinuousListening() {
+            if (isListening) return;
+
+            isListening = true;
+            recognition.start();
+
+            startVoiceButton.textContent = "Escuchando... (Haz clic para DETENER)";
+            startVoiceButton.disabled = false;
+            userOutput.textContent = 'Tu dices: Escuchando continuamente...';
+        }
+
+        // El bucle de reinicio automático
         recognition.onend = () => {
             // El reconocimiento se detuvo (por silencio o resultado)
             if (isListening) {
-                // Si aún estamos en modo de escucha, reinicia inmediatamente
                 recognition.start();
                 userOutput.textContent = 'Tu dices: Escuchando continuamente...';
             } else {
+                startVoiceButton.textContent = "Escucha Detenida (Haz clic para REINICIAR)";
                 startVoiceButton.disabled = false;
             }
         };
 
         recognition.onerror = (event) => {
             console.error('Error de reconocimiento:', event.error);
-            // Si hay un error, lo registramos pero intentamos reiniciar si estábamos escuchando
+            // Si hay un error, lo registramos y intentamos reiniciar
             if (isListening) {
-                 setTimeout(() => recognition.start(), 1000); // Intenta reiniciar después de 1s
+                 setTimeout(() => recognition.start(), 1000);
             }
         };
 
-        // --- MANEJO DE CLIC DEL BOTÓN ---
+        // --- MANEJO DE CLIC DEL BOTÓN (Interruptor manual) ---
 
         startVoiceButton.addEventListener('click', () => {
-            if (!isListening) {
-                // ENCENDER el modo de escucha continua
-                isListening = true;
-                recognition.start();
-                startVoiceButton.textContent = "Detener Escucha";
-                userOutput.textContent = 'Tu dices: Escuchando...';
-            } else {
+            if (isListening) {
                 // APAGAR el modo de escucha continua
                 isListening = false;
-                recognition.stop(); // Esto dispara 'onend', pero 'isListening' es false, así que no se reinicia
-                startVoiceButton.textContent = "Habilitar Escucha";
-                userOutput.textContent = 'Tu dices: Desactivado.';
+                recognition.stop();
+            } else {
+                // REINICIAR el modo de escucha continua
+                startContinuousListening();
             }
         });
 
 
-        // --- MANEJO DE RESULTADO DE VOZ ---
+        // --- MANEJO DE RESULTADO DE VOZ (Envío a Django) ---
 
         recognition.onresult = (event) => {
             // 1. Detener la escucha continua mientras el sistema procesa/responde
@@ -114,7 +143,7 @@
         };
 
 
-        // --- COMUNICACIÓN CON DJANGO (BACKEND) ---
+        // --- FUNCIÓN AJAX (Comunicación con Django API) ---
 
         async function sendToDjango(message) {
             bartenderOutput.textContent = 'Bartender dice: Procesando la orden...';
@@ -137,8 +166,7 @@
 
             } catch (error) {
                 console.error('Error al comunicarse con la API de Django:', error);
-                bartenderOutput.textContent = 'Bartender dice: Disculpa, hubo un problema con el sistema.';
-                // Asegurar que la escucha se reactiva incluso con error
+                bartenderOutput.textContent = 'Bartender dice: Vaya, parece que hay un problema de conexión.';
                 reactivateListening();
             }
         }
@@ -149,22 +177,19 @@
         function reactivateListening() {
             // Reactivar la escucha después de un breve retraso
             setTimeout(() => {
-                isListening = true;
-                recognition.start();
-                startVoiceButton.textContent = "Detener Escucha";
-            }, 500); // Pequeño retraso para evitar capturar audio de la respuesta
+                startContinuousListening();
+            }, 500);
         }
 
         function handleBartenderResponse(responseText) {
             bartenderOutput.textContent = `Bartender dice: ${responseText}`;
 
-            // 1. Iniciar la simulación de habla
             startSpeakingAnimation();
 
-            // Simulación del tiempo que tarda en hablar
-            const speakingDuration = responseText.length * 75 + 1000; // 75ms por carácter + 1s base
+            // Simulación del tiempo que tarda en hablar (ajusta el valor)
+            const speakingDuration = responseText.length * 75 + 1000;
 
-            // 2. Usar setTimeout para detener la animación y reactivar la escucha
+            // Usar setTimeout para detener la animación y reactivar la escucha
             setTimeout(() => {
                 stopSpeakingAnimation();
                 reactivateListening();
@@ -172,10 +197,8 @@
         }
 
         function startSpeakingAnimation() {
-            // Detener cualquier animación previa
             clearInterval(mouthInterval);
 
-            // Establece un intervalo para cambiar la apariencia de la boca
             mouthInterval = setInterval(() => {
                 // Alterna la clase CSS para simular la apertura y cierre aleatorio
                 if (Math.random() > 0.5) {
@@ -188,57 +211,40 @@
 
         function stopSpeakingAnimation() {
             clearInterval(mouthInterval);
-            mouthElement.classList.remove('mouth-open'); // Asegurar que la boca se cierre
+            mouthElement.classList.remove('mouth-open');
         }
-        // --- COMUNICACIÓN WEBSOCKET CON CHANNELS ---
 
-        let robotSocket = null;
-        const statusOutput = document.createElement('p');
-        statusOutput.id = 'robot-status';
-        statusOutput.textContent = 'Estado del Robot: Desconectado';
-        document.body.appendChild(statusOutput); // Añade un nuevo elemento para el estado
+        // --- CONEXIÓN WEBSOCKET CON CHANNELS ---
 
         function connectWebSocket() {
-            // Usa 'ws://' para desarrollo (o 'wss://' si usas HTTPS en producción)
-            // Obtiene el hostname actual (ej. 127.0.0.1:8000)
             const host = window.location.host;
 
-            // Conéctate al endpoint que definiste en routing.py
-            robotSocket = new WebSocket(
-                'ws://' + host + '/ws/robot/'
-            );
+            robotSocket = new WebSocket('ws://' + host + '/ws/robot/');
 
-            // Evento de conexión exitosa
             robotSocket.onopen = (e) => {
                 statusOutput.textContent = 'Estado del Robot: Conectado. Esperando orden...';
-                console.log('WebSocket de robot conectado.');
             };
 
-            // Evento de recepción de mensajes (comandos desde Django View)
+            // Recepción de comandos desde la View de Django (vía Channels)
             robotSocket.onmessage = (e) => {
                 const data = JSON.parse(e.data);
-                console.log('Mensaje de WebSocket recibido:', data);
 
                 if (data.type === 'command') {
                     const command = data.command;
                     statusOutput.textContent = `Estado del Robot: Recibida la orden: ${command}`;
 
-                    // Aquí puedes añadir lógica visual para la preparación del trago
-                    if (command.includes("MOJITO")) {
+                    // Lógica para mostrar la preparación
+                    if (command.startsWith("PREPARAR")) {
                          statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
-                         // Simulación de tiempo de preparación
                          setTimeout(() => {
                              statusOutput.textContent = 'Estado del Robot: Trago servido. ¡Disfruta!';
-                         }, 5000);
+                         }, 5000); // 5 segundos de simulación de preparación
                     }
                 }
             };
 
-            // Manejo de cierres o errores
             robotSocket.onclose = (e) => {
                 statusOutput.textContent = 'Estado del Robot: Desconectado. Intentando reconectar...';
-                console.error('WebSocket cerrado, intentando reconectar en 3s...', e);
-                // Intentar reconectar automáticamente después de un breve retraso
                 setTimeout(connectWebSocket, 3000);
             };
 
@@ -247,8 +253,15 @@
             };
         }
 
-        // Iniciar la conexión al cargar la página
+        // --------------------------------------------------------
+        // *** ARRANQUE INICIAL DE LA APLICACIÓN ***
+        // --------------------------------------------------------
+
+        // 1. Iniciar la conexión al WebSocket
         connectWebSocket();
+
+        // 2. Iniciar la escucha continua automáticamente al cargar la página
+        startContinuousListening();
 
     </script>
 </body>
