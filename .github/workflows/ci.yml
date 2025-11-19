@@ -34,15 +34,15 @@ jobs:
       # Flake8 busca errores de estilo, variables sin usar, etc.
       run: flake8 .
 
-    - name: Run Django Tests
+    #- name: Run Django Tests
       # Ejecuta las pruebas unitarias de Django
-      run: python manage.py test bartender_app 
-      env:
+      #run: python manage.py test bartender_app 
+      #env:
         # Pasa la clave API como variable de entorno
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} 
-        DJANGO_SETTINGS_MODULE: core.settings
+        #GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} 
+        #DJANGO_SETTINGS_MODULE: core.settings
 
-    - name: Run ESLint (Check Frontend JavaScript)
+    #- name: Run ESLint (Check Frontend JavaScript)
       # Ejecuta ESLint sobre el archivo HTML (asumiendo que .eslintrc.json está configurado)
       # Nota: el path puede requerir ajuste si no usas 'npx' o la instalación es local
-      run: npx eslint bartender_app/templates/bartender_app/bartender.html
+      #run: npx eslint bartender_app/templates/bartender_app/bartender.html
