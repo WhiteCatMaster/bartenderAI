@@ -11,131 +11,129 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ============================================
+           FONDO DEL BAR - AÑADE TU IMAGEN AQUÍ
+           ============================================ */
+        #bar-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            /* 🔽 AÑADE LA URL DE TU IMAGEN DE FONDO DEL BAR AQUÍ 🔽 */
+            background-image: url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1920');
+            /* ☝️ REEMPLAZA LA URL ARRIBA CON TU IMAGEN ☝️ */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Overlay oscuro para mejorar contraste */
+        #bar-background::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Contenedor principal */
+        .main-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
 
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 30px;
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        h1 {
-            text-align: center;
-            color: #2d3748;
-            font-size: 28px;
-            margin-bottom: 30px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Contenedor del Avatar */
-        .avatar-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        #bartender-avatar {
-            width: 180px;
-            height: 180px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
+        /* ============================================
+           BARTENDER PRINCIPAL - AÑADE TUS IMÁGENES AQUÍ
+           ============================================ */
+        #bartender-container {
             position: relative;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s ease;
+            width: 600px;
+            height: 800px;
+            max-width: 90vw;
+            max-height: 90vh;
         }
 
-        #bartender-avatar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        #bartender-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: opacity 0.1s ease;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
         }
 
-        /* Ojos del robot */
-        .eye {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: white;
-            border-radius: 50%;
-            top: 50px;
-        }
-
-        .eye-left {
-            left: 45px;
-        }
-
-        .eye-right {
-            right: 45px;
-        }
-
-        .pupil {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background-color: #2d3748;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: blink 3s infinite;
-        }
-
-        @keyframes blink {
-            0%, 98%, 100% { transform: translate(-50%, -50%) scaleY(1); }
-            99% { transform: translate(-50%, -50%) scaleY(0.1); }
-        }
-
-        /* Elemento de la Boca */
-        #mouth {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 8px;
-            background-color: white;
-            border-radius: 5px;
-            transition: all 0.1s;
+        /* 🔽 AÑADE TUS IMÁGENES DEL BARTENDER AQUÍ 🔽 */
+        .mouth-closed {
+            /* ☝️ Imagen del bartender con boca CERRADA ☝️ */
+            content: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fpng-clipart%2F20220927%2Foriginal%2Fpngtree-bartending-daytime-cocktail-bar-shaker-png-image_8638212.png&f=1&nofb=1&ipt=301875325627158e6bf053a85ff9394a28b6c77c09bb32e35ec858939911855a');
         }
 
         .mouth-open {
-            height: 25px !important;
-            background-color: #fbb6ce !important;
-            border-radius: 0 0 25px 25px !important;
+            /* ☝️ Imagen del bartender con boca ABIERTA ☝️ */
+            content: url('https://via.placeholder.com/600x800/764ba2/ffffff?text=BARTENDER+BOCA+ABIERTA');
+        }
+        /* ☝️ REEMPLAZA LAS URLs ARRIBA CON TUS IMÁGENES ☝️ */
+
+        /* Panel de control lateral */
+        .control-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 20, 16, 0.92);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            border-radius: 20px;
+            padding: 25px;
+            width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+            z-index: 3;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #d4af37;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.5);
         }
 
         /* Botón principal */
         #start-voice {
             width: 100%;
-            padding: 16px 24px;
-            font-size: 16px;
+            padding: 14px 20px;
+            font-size: 15px;
             font-weight: 600;
-            color: white;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 15px;
+            color: #1a1410;
+            background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+            border: 2px solid rgba(212, 175, 55, 0.6);
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            margin-bottom: 15px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         #start-voice:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%);
         }
 
         #start-voice:active {
@@ -147,48 +145,45 @@
             cursor: not-allowed;
         }
 
-        /* Cuadros de texto */
+        /* Cuadros de salida */
         .output-box {
-            background: #f7fafc;
-            border-left: 4px solid #667eea;
-            padding: 15px 20px;
-            margin-bottom: 15px;
+            background: rgba(42, 35, 28, 0.8);
+            border-left: 4px solid #d4af37;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 12px 15px;
+            margin-bottom: 12px;
             border-radius: 10px;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s ease;
+            min-height: 50px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #e8d4b0;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
-        .output-box:hover {
-            background: #edf2f7;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        #user-output {
-            color: #4a5568;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        #bartender-output {
-            color: #2d3748;
-            font-size: 15px;
-            font-weight: 500;
-            line-height: 1.6;
+        .label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #d4af37;
+            display: block;
+            margin-bottom: 5px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
 
         #robot-status {
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 15px 20px;
+            background: rgba(42, 35, 28, 0.9);
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            padding: 12px 15px;
             border-radius: 10px;
             font-weight: 600;
             text-align: center;
-            font-size: 14px;
-            margin-top: 20px;
+            font-size: 12px;
+            margin-top: 15px;
             animation: pulse 2s infinite;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3), inset 0 1px 3px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 1px 5px rgba(212, 175, 55, 0.5);
         }
 
         @keyframes pulse {
@@ -196,106 +191,146 @@
             50% { opacity: 0.8; }
         }
 
-        /* Etiquetas */
-        .label {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #667eea;
-            margin-bottom: 8px;
-            display: block;
-        }
-
         /* Indicador de escucha */
         .listening-indicator {
             display: inline-block;
-            width: 10px;
-            height: 10px;
-            background: #48bb78;
+            width: 8px;
+            height: 8px;
+            background: #52c41a;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 6px;
             animation: listening 1s infinite;
+            box-shadow: 0 0 10px #52c41a;
         }
 
         @keyframes listening {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        /* Logo/Título superior */
+        .top-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 3;
+            background: rgba(26, 20, 16, 0.92);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .top-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #d4af37;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.6);
         }
 
         /* Responsividad */
-        @media (max-width: 600px) {
-            .container {
-                padding: 30px 20px;
+        @media (max-width: 768px) {
+            .control-panel {
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                left: 0;
+                top: auto;
+                width: 100%;
+                border-radius: 20px 20px 0 0;
+                max-height: 50vh;
             }
 
-            h1 {
-                font-size: 24px;
+            .top-header {
+                top: 10px;
+                left: 10px;
+                padding: 10px 15px;
             }
 
-            #bartender-avatar {
-                width: 150px;
-                height: 150px;
+            .top-header h1 {
+                font-size: 18px;
             }
 
-            .eye {
-                width: 25px;
-                height: 25px;
+            #bartender-container {
+                width: 400px;
+                height: 600px;
             }
+        }
 
-            .eye-left {
-                left: 38px;
+        @media (max-width: 480px) {
+            #bartender-container {
+                width: 300px;
+                height: 450px;
             }
+        }
 
-            .eye-right {
-                right: 38px;
-            }
+        /* Scrollbar personalizado */
+        .control-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .control-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🤖 Bartender Robot Leo</h1>
+    <!-- Fondo del bar -->
+    <div id="bar-background"></div>
 
-        <div class="avatar-container">
-            <div id="bartender-avatar">
-                <div class="eye eye-left">
-                    <div class="pupil"></div>
-                </div>
-                <div class="eye eye-right">
-                    <div class="pupil"></div>
-                </div>
-                <div id="mouth"></div>
-            </div>
+    <!-- Título superior -->
+    <div class="top-header">
+        <h1>🤖 Bartender MegasXLR</h1>
+    </div>
+
+    <!-- Bartender principal (centro) -->
+    <div class="main-container">
+        <div id="bartender-container">
+            <img id="bartender-image" class="mouth-closed" alt="Bartender Robot">
         </div>
+    </div>
+
+    <!-- Panel de control (lateral derecho) -->
+    <div class="control-panel">
+        <div class="panel-title">Control Panel</div>
 
         <button id="start-voice">🎤 Habilitar Escucha</button>
 
         <div class="output-box">
-            <p id="user-output"><span class="label">Tú dices:</span> </p>
+            <span class="label">Tú dices:</span>
+            <div id="user-output"></div>
         </div>
 
         <div class="output-box">
-            <p id="bartender-output"><span class="label">Bartender dice:</span> </p>
+            <span class="label">Bartender dice:</span>
+            <div id="bartender-output"></div>
         </div>
+
+        <div id="robot-status">🔌 Estado del Robot: Desconectado</div>
     </div>
 
     <script>
         const startVoiceButton = document.getElementById('start-voice');
         const userOutput = document.getElementById('user-output');
         const bartenderOutput = document.getElementById('bartender-output');
-        const mouthElement = document.getElementById('mouth');
+        const bartenderImage = document.getElementById('bartender-image');
+        const statusOutput = document.getElementById('robot-status');
 
         // Variables de estado
         let isListening = false;
         let mouthInterval;
-        let robotSocket = null; // Para el WebSocket
-
-        // --- Configuración y Elemento de Estado del Robot ---
-        const statusOutput = document.createElement('p');
-        statusOutput.id = 'robot-status';
-        statusOutput.textContent = '🔌 Estado del Robot: Desconectado';
-        document.querySelector('.container').appendChild(statusOutput);
+        let robotSocket = null;
 
         // 1. Inicializa la Web Speech API
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -313,15 +348,14 @@
 
             startVoiceButton.innerHTML = '<span class="listening-indicator"></span>Escuchando... (Clic para DETENER)';
             startVoiceButton.disabled = false;
-            userOutput.innerHTML = '<span class="label">Tú dices:</span> <span class="listening-indicator"></span>Escuchando continuamente...';
+            userOutput.innerHTML = '<span class="listening-indicator"></span>Escuchando continuamente...';
         }
 
         // El bucle de reinicio automático
         recognition.onend = () => {
-            // El reconocimiento se detuvo (por silencio o resultado)
             if (isListening) {
                 recognition.start();
-                userOutput.innerHTML = '<span class="label">Tú dices:</span> <span class="listening-indicator"></span>Escuchando continuamente...';
+                userOutput.innerHTML = '<span class="listening-indicator"></span>Escuchando continuamente...';
             } else {
                 startVoiceButton.innerHTML = "🎤 Escucha Detenida (Clic para REINICIAR)";
                 startVoiceButton.disabled = false;
@@ -330,45 +364,38 @@
 
         recognition.onerror = (event) => {
             console.error('Error de reconocimiento:', event.error);
-            // Si hay un error, lo registramos y intentamos reiniciar
             if (isListening) {
                  setTimeout(() => recognition.start(), 1000);
             }
         };
 
-        // --- MANEJO DE CLIC DEL BOTÓN (Interruptor manual) ---
+        // --- MANEJO DE CLIC DEL BOTÓN ---
 
         startVoiceButton.addEventListener('click', () => {
             if (isListening) {
-                // APAGAR el modo de escucha continua
                 isListening = false;
                 recognition.stop();
             } else {
-                // REINICIAR el modo de escucha continua
                 startContinuousListening();
             }
         });
 
-
-        // --- MANEJO DE RESULTADO DE VOZ (Envío a Django) ---
+        // --- MANEJO DE RESULTADO DE VOZ ---
 
         recognition.onresult = (event) => {
-            // 1. Detener la escucha continua mientras el sistema procesa/responde
             isListening = false;
             recognition.stop();
 
             const speechResult = event.results[0][0].transcript;
-            userOutput.innerHTML = `<span class="label">Tú dices:</span> ${speechResult}`;
+            userOutput.textContent = speechResult;
 
-            // 2. Enviar el texto a la API de Django
             sendToDjango(speechResult);
         };
 
-
-        // --- FUNCIÓN AJAX (Comunicación con Django API) ---
+        // --- FUNCIÓN AJAX ---
 
         async function sendToDjango(message) {
-            bartenderOutput.innerHTML = '<span class="label">Bartender dice:</span> ⏳ Procesando la orden...';
+            bartenderOutput.textContent = '⏳ Procesando la orden...';
 
             try {
                 const response = await fetch('/api/dialogue/', {
@@ -382,36 +409,30 @@
                 }
 
                 const data = await response.json();
-
-                // 3. Manejar la respuesta, animar y reactivar la escucha
                 handleBartenderResponse(data.response);
 
             } catch (error) {
                 console.error('Error al comunicarse con la API de Django:', error);
-                bartenderOutput.innerHTML = '<span class="label">Bartender dice:</span> ⚠️ Vaya, parece que hay un problema de conexión.';
+                bartenderOutput.textContent = '⚠️ Vaya, parece que hay un problema de conexión.';
                 reactivateListening();
             }
         }
 
-
-        // --- ANIMACIÓN Y REINICIO DE ESCUCHA ---
+        // --- ANIMACIÓN DE LA BOCA CON IMÁGENES ---
 
         function reactivateListening() {
-            // Reactivar la escucha después de un breve retraso
             setTimeout(() => {
                 startContinuousListening();
             }, 500);
         }
 
         function handleBartenderResponse(responseText) {
-            bartenderOutput.innerHTML = `<span class="label">Bartender dice:</span> ${responseText}`;
+            bartenderOutput.textContent = responseText;
 
             startSpeakingAnimation();
 
-            // Simulación del tiempo que tarda en hablar (ajusta el valor)
             const speakingDuration = responseText.length * 75 + 1000;
 
-            // Usar setTimeout para detener la animación y reactivar la escucha
             setTimeout(() => {
                 stopSpeakingAnimation();
                 reactivateListening();
@@ -422,21 +443,21 @@
             clearInterval(mouthInterval);
 
             mouthInterval = setInterval(() => {
-                // Alterna la clase CSS para simular la apertura y cierre aleatorio
+                // Alterna entre las clases para cambiar la imagen
                 if (Math.random() > 0.5) {
-                    mouthElement.classList.add('mouth-open');
+                    bartenderImage.className = 'mouth-open';
                 } else {
-                    mouthElement.classList.remove('mouth-open');
+                    bartenderImage.className = 'mouth-closed';
                 }
-            }, 100);
+            }, 150);
         }
 
         function stopSpeakingAnimation() {
             clearInterval(mouthInterval);
-            mouthElement.classList.remove('mouth-open');
+            bartenderImage.className = 'mouth-closed';
         }
 
-        // --- CONEXIÓN WEBSOCKET CON CHANNELS ---
+        // --- CONEXIÓN WEBSOCKET ---
 
         function connectWebSocket() {
             const host = window.location.host;
@@ -447,7 +468,6 @@
                 statusOutput.textContent = '✅ Estado del Robot: Conectado. Esperando orden...';
             };
 
-            // Recepción de comandos desde la View de Django (vía Channels)
             robotSocket.onmessage = (e) => {
                 const data = JSON.parse(e.data);
 
@@ -455,12 +475,11 @@
                     const command = data.command;
                     statusOutput.textContent = `🎯 Estado del Robot: Recibida la orden: ${command}`;
 
-                    // Lógica para mostrar la preparación
                     if (command.startsWith("PREPARAR")) {
                          statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
                          setTimeout(() => {
                              statusOutput.textContent = '✨ Estado del Robot: Trago servido. ¡Disfruta!';
-                         }, 5000); // 5 segundos de simulación de preparación
+                         }, 5000);
                     }
                 }
             };
@@ -475,14 +494,8 @@
             };
         }
 
-        // --------------------------------------------------------
-        // *** ARRANQUE INICIAL DE LA APLICACIÓN ***
-        // --------------------------------------------------------
-
-        // 1. Iniciar la conexión al WebSocket
+        // *** ARRANQUE INICIAL ***
         connectWebSocket();
-
-        // 2. Iniciar la escucha continua automáticamente al cargar la página
         startContinuousListening();
 
     </script>
