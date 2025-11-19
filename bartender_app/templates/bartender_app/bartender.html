@@ -2,22 +2,254 @@
 <html>
 <head>
     <title>The Bartender Robot</title>
+    <style>
+        body { font-family: sans-serif; }
+        /* Estilos básicos para simular el avatar */
+        #bartender-avatar {
+            width: 150px;
+            height: 150px;
+            background-color: #333; /* Color de la cabeza */
+            border-radius: 50%;
+            margin: 20px 0;
+            position: relative;
+            transition: all 0.1s;
+        }
+        #mouth {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 10px;
+            background-color: white; /* Boca cerrada */
+            border-radius: 5px;
+            transition: all 0.1s;
+        }
+        .mouth-open {
+            height: 20px !important;
+            background-color: pink !important;
+            border-radius: 0 0 10px 10px !important;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bienvenido, ¿qué desea tomar?</h1>
-    <div id="bartender-avatar">
-        </div>
+    <h1>🤖 Bartender Robot - ¿Qué Desea Tomar?</h1>
 
-    <button id="start-voice">Hablar</button>
+    <div id="bartender-avatar">
+        <div id="mouth"></div> </div>
+
+    <button id="start-voice">Habilitar Escucha</button>
+
     <p id="user-output">Tu dices: </p>
     <p id="bartender-output">Bartender dice: </p>
 
     <script>
-        // *** AQUÍ VA TU LÓGICA DE JAVASCRIPT: ***
-        // 1. Web Speech API (Speech-to-Text)
-        // 2. Fetch/AJAX para enviar el texto a /api/dialogue/
-        // 3. Lógica de animación de la boca.
-        // 4. WebSocket para la conexión con el robot (usando Channels).
+        const startVoiceButton = document.getElementById('start-voice');
+        const userOutput = document.getElementById('user-output');
+        const bartenderOutput = document.getElementById('bartender-output');
+        const mouthElement = document.getElementById('mouth');
+
+        // Variables de estado
+        let isListening = false;
+        let mouthInterval;
+
+        // 1. Inicializa la Web Speech API
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'es-ES';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        // --- MANEJO DE ESTADOS DE ESCUCHA ---
+
+        recognition.onend = () => {
+            // El reconocimiento se detuvo (por silencio o resultado)
+            if (isListening) {
+                // Si aún estamos en modo de escucha, reinicia inmediatamente
+                recognition.start();
+                userOutput.textContent = 'Tu dices: Escuchando continuamente...';
+            } else {
+                startVoiceButton.disabled = false;
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Error de reconocimiento:', event.error);
+            // Si hay un error, lo registramos pero intentamos reiniciar si estábamos escuchando
+            if (isListening) {
+                 setTimeout(() => recognition.start(), 1000); // Intenta reiniciar después de 1s
+            }
+        };
+
+        // --- MANEJO DE CLIC DEL BOTÓN ---
+
+        startVoiceButton.addEventListener('click', () => {
+            if (!isListening) {
+                // ENCENDER el modo de escucha continua
+                isListening = true;
+                recognition.start();
+                startVoiceButton.textContent = "Detener Escucha";
+                userOutput.textContent = 'Tu dices: Escuchando...';
+            } else {
+                // APAGAR el modo de escucha continua
+                isListening = false;
+                recognition.stop(); // Esto dispara 'onend', pero 'isListening' es false, así que no se reinicia
+                startVoiceButton.textContent = "Habilitar Escucha";
+                userOutput.textContent = 'Tu dices: Desactivado.';
+            }
+        });
+
+
+        // --- MANEJO DE RESULTADO DE VOZ ---
+
+        recognition.onresult = (event) => {
+            // 1. Detener la escucha continua mientras el sistema procesa/responde
+            isListening = false;
+            recognition.stop();
+
+            const speechResult = event.results[0][0].transcript;
+            userOutput.textContent = `Tu dices: ${speechResult}`;
+
+            // 2. Enviar el texto a la API de Django
+            sendToDjango(speechResult);
+        };
+
+
+        // --- COMUNICACIÓN CON DJANGO (BACKEND) ---
+
+        async function sendToDjango(message) {
+            bartenderOutput.textContent = 'Bartender dice: Procesando la orden...';
+
+            try {
+                const response = await fetch('/api/dialogue/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // 3. Manejar la respuesta, animar y reactivar la escucha
+                handleBartenderResponse(data.response);
+
+            } catch (error) {
+                console.error('Error al comunicarse con la API de Django:', error);
+                bartenderOutput.textContent = 'Bartender dice: Disculpa, hubo un problema con el sistema.';
+                // Asegurar que la escucha se reactiva incluso con error
+                reactivateListening();
+            }
+        }
+
+
+        // --- ANIMACIÓN Y REINICIO DE ESCUCHA ---
+
+        function reactivateListening() {
+            // Reactivar la escucha después de un breve retraso
+            setTimeout(() => {
+                isListening = true;
+                recognition.start();
+                startVoiceButton.textContent = "Detener Escucha";
+            }, 500); // Pequeño retraso para evitar capturar audio de la respuesta
+        }
+
+        function handleBartenderResponse(responseText) {
+            bartenderOutput.textContent = `Bartender dice: ${responseText}`;
+
+            // 1. Iniciar la simulación de habla
+            startSpeakingAnimation();
+
+            // Simulación del tiempo que tarda en hablar
+            const speakingDuration = responseText.length * 75 + 1000; // 75ms por carácter + 1s base
+
+            // 2. Usar setTimeout para detener la animación y reactivar la escucha
+            setTimeout(() => {
+                stopSpeakingAnimation();
+                reactivateListening();
+            }, speakingDuration);
+        }
+
+        function startSpeakingAnimation() {
+            // Detener cualquier animación previa
+            clearInterval(mouthInterval);
+
+            // Establece un intervalo para cambiar la apariencia de la boca
+            mouthInterval = setInterval(() => {
+                // Alterna la clase CSS para simular la apertura y cierre aleatorio
+                if (Math.random() > 0.5) {
+                    mouthElement.classList.add('mouth-open');
+                } else {
+                    mouthElement.classList.remove('mouth-open');
+                }
+            }, 100);
+        }
+
+        function stopSpeakingAnimation() {
+            clearInterval(mouthInterval);
+            mouthElement.classList.remove('mouth-open'); // Asegurar que la boca se cierre
+        }
+        // --- COMUNICACIÓN WEBSOCKET CON CHANNELS ---
+
+        let robotSocket = null;
+        const statusOutput = document.createElement('p');
+        statusOutput.id = 'robot-status';
+        statusOutput.textContent = 'Estado del Robot: Desconectado';
+        document.body.appendChild(statusOutput); // Añade un nuevo elemento para el estado
+
+        function connectWebSocket() {
+            // Usa 'ws://' para desarrollo (o 'wss://' si usas HTTPS en producción)
+            // Obtiene el hostname actual (ej. 127.0.0.1:8000)
+            const host = window.location.host;
+
+            // Conéctate al endpoint que definiste en routing.py
+            robotSocket = new WebSocket(
+                'ws://' + host + '/ws/robot/'
+            );
+
+            // Evento de conexión exitosa
+            robotSocket.onopen = (e) => {
+                statusOutput.textContent = 'Estado del Robot: Conectado. Esperando orden...';
+                console.log('WebSocket de robot conectado.');
+            };
+
+            // Evento de recepción de mensajes (comandos desde Django View)
+            robotSocket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                console.log('Mensaje de WebSocket recibido:', data);
+
+                if (data.type === 'command') {
+                    const command = data.command;
+                    statusOutput.textContent = `Estado del Robot: Recibida la orden: ${command}`;
+
+                    // Aquí puedes añadir lógica visual para la preparación del trago
+                    if (command.includes("MOJITO")) {
+                         statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
+                         // Simulación de tiempo de preparación
+                         setTimeout(() => {
+                             statusOutput.textContent = 'Estado del Robot: Trago servido. ¡Disfruta!';
+                         }, 5000);
+                    }
+                }
+            };
+
+            // Manejo de cierres o errores
+            robotSocket.onclose = (e) => {
+                statusOutput.textContent = 'Estado del Robot: Desconectado. Intentando reconectar...';
+                console.error('WebSocket cerrado, intentando reconectar en 3s...', e);
+                // Intentar reconectar automáticamente después de un breve retraso
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            robotSocket.onerror = (e) => {
+                console.error('WebSocket Error:', e);
+            };
+        }
+
+        // Iniciar la conexión al cargar la página
+        connectWebSocket();
+
     </script>
 </body>
 </html>

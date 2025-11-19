@@ -3,11 +3,9 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync # <-- ¡Añadir esta línea
 import json
-
-
-# bartender_app/views.py
-
 from django.shortcuts import render
 # ...
 
@@ -33,4 +31,23 @@ def dialogue_api(request):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-    return HttpResponse(status=405)  # Método no permitido
+    return HttpResponse(status=405)  # Metodo no permitido
+
+
+@csrf_exempt
+def dialogue_api(request):
+    # ... (código existente)
+
+    # Dentro del bloque 'if "mojito" in user_text.lower() or "trago" in user_text.lower():'
+
+    # ... (código de detección de comando)
+
+    # ENVIAR COMANDO AL ROBOT VÍA DJANGO CHANNELS
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(  # <-- Usar async_to_sync para llamar a group_send
+        "robot_commands",  # Nombre del grupo
+        {
+            "type": "send.command",
+            "text": command_to_robot,
+        }
+    )
