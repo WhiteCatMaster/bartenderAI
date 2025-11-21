@@ -83,7 +83,7 @@
 
         .mouth-open {
             /* ☝️ Imagen del bartender con boca ABIERTA ☝️ */
-            content: url('https://via.placeholder.com/600x800/764ba2/ffffff?text=BARTENDER+BOCA+ABIERTA');
+            content: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fpng-clipart%2F20221013%2Foriginal%2Fpngtree-bartender-at-work-in-cocktail-evening-png-image_8681089.png&f=1&nofb=1&ipt=cf3aafa7e90df483072d2af1dbb5ba2a161b4ceb3f5b440f4f88360a33040a0a');
         }
         /* ☝️ REEMPLAZA LAS URLs ARRIBA CON TUS IMÁGENES ☝️ */
 
@@ -286,22 +286,18 @@
     </style>
 </head>
 <body>
-    <!-- Fondo del bar -->
     <div id="bar-background"></div>
 
-    <!-- Título superior -->
     <div class="top-header">
         <h1>🤖 Bartender MegasXLR</h1>
     </div>
 
-    <!-- Bartender principal (centro) -->
     <div class="main-container">
         <div id="bartender-container">
             <img id="bartender-image" class="mouth-closed" alt="Bartender Robot">
         </div>
     </div>
 
-    <!-- Panel de control (lateral derecho) -->
     <div class="control-panel">
         <div class="panel-title">Control Panel</div>
 
@@ -332,11 +328,32 @@
         let mouthInterval;
         let robotSocket = null;
 
-        // 1. Inicializa la Web Speech API
+        // 1. Inicializa la Web Speech API (Reconocimiento de voz)
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'es-ES';
+        recognition.lang = 'es-ES'; // Idioma de reconocimiento: español
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
+
+        // 2. Inicializa la Síntesis de Voz (Text-to-Speech)
+        const synth = window.speechSynthesis;
+        let ttsVoice = null;
+
+        // Carga de voces
+        function loadVoices() {
+            // Intenta encontrar una voz en inglés de EE. UU.
+            const voices = synth.getVoices();
+            // Fallback a cualquier voz en inglés o la primera disponible
+            ttsVoice = voices.find(voice => voice.lang === 'en-US') || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
+            if (!ttsVoice) {
+                console.warn("No se encontraron voces disponibles en inglés. Se usará la voz predeterminada del navegador.");
+            }
+        }
+
+        // Intenta cargar las voces inmediatamente, o espera el evento 'voiceschanged'
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = loadVoices;
+        }
+        loadVoices(); // Llama inicialmente
 
         // --- MANEJO DE ESTADOS DE ESCUCHA CONTINUA ---
 
@@ -364,14 +381,22 @@
 
         recognition.onerror = (event) => {
             console.error('Error de reconocimiento:', event.error);
+            // Intentar reiniciar si el error es de red o algo temporal y queremos seguir escuchando
             if (isListening) {
                  setTimeout(() => recognition.start(), 1000);
             }
         };
 
-        // --- MANEJO DE CLIC DEL BOTÓN ---
+        // --- MANEJO DE CLIC DEL BOTÓN (SOLUCIÓN DEL ERROR 'not-allowed') ---
 
         startVoiceButton.addEventListener('click', () => {
+            // 🛑 SOLUCIÓN CRÍTICA: Cancelar cualquier voz pendiente con un clic
+            // asegura el permiso de usuario (un "gesto") para el TTS.
+            if (synth.speaking) {
+                synth.cancel();
+                stopSpeakingAnimation();
+            }
+
             if (isListening) {
                 isListening = false;
                 recognition.stop();
@@ -383,6 +408,7 @@
         // --- MANEJO DE RESULTADO DE VOZ ---
 
         recognition.onresult = (event) => {
+            // Detenemos la escucha después de un resultado
             isListening = false;
             recognition.stop();
 
@@ -398,6 +424,7 @@
             bartenderOutput.textContent = '⏳ Procesando la orden...';
 
             try {
+                // Asumiendo que la API de Django está en la misma ruta relativa
                 const response = await fetch('/api/dialogue/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -418,9 +445,10 @@
             }
         }
 
-        // --- ANIMACIÓN DE LA BOCA CON IMÁGENES ---
+        // --- ANIMACIÓN DE LA BOCA Y LÓGICA DE VOZ (TTS) ---
 
         function reactivateListening() {
+            // Pequeño retardo para asegurar que la animación/voz ha terminado
             setTimeout(() => {
                 startContinuousListening();
             }, 500);
@@ -429,17 +457,36 @@
         function handleBartenderResponse(responseText) {
             bartenderOutput.textContent = responseText;
 
-            startSpeakingAnimation();
+            // 🎙️ INICIA EL TTS
+            if (synth.speaking) {
+                synth.cancel(); // Prevenir colisiones
+            }
 
-            const speakingDuration = responseText.length * 75 + 1000;
+            const utterance = new SpeechSynthesisUtterance(responseText);
+            utterance.lang = 'en-US'; // Forzamos a inglés como solicitaste
+            utterance.voice = ttsVoice;
+            utterance.rate = 1.0; // Velocidad normal
 
-            setTimeout(() => {
+            utterance.onstart = () => {
+                startSpeakingAnimation();
+            };
+
+            utterance.onend = () => {
+                stopSpeakingAnimation();
+                reactivateListening(); // Volver a escuchar después de terminar de hablar
+            };
+
+            utterance.onerror = (event) => {
+                console.error('SpeechSynthesis Utterance Error:', event);
                 stopSpeakingAnimation();
                 reactivateListening();
-            }, speakingDuration);
+            };
+
+            synth.speak(utterance);
         }
 
         function startSpeakingAnimation() {
+            // Asegurarse de que solo haya un intervalo de animación activo
             clearInterval(mouthInterval);
 
             mouthInterval = setInterval(() => {
@@ -461,8 +508,10 @@
 
         function connectWebSocket() {
             const host = window.location.host;
+            // Usar ws: o wss: dependiendo de tu protocolo (http o https)
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 
-            robotSocket = new WebSocket('ws://' + host + '/ws/robot/');
+            robotSocket = new WebSocket(protocol + '//' + host + '/ws/robot/');
 
             robotSocket.onopen = (e) => {
                 statusOutput.textContent = '✅ Estado del Robot: Conectado. Esperando orden...';
@@ -486,7 +535,10 @@
 
             robotSocket.onclose = (e) => {
                 statusOutput.textContent = '🔄 Estado del Robot: Desconectado. Intentando reconectar...';
-                setTimeout(connectWebSocket, 3000);
+                // Solo intentar reconectar si no es un cierre normal (código 1000)
+                if (e.code !== 1000) {
+                    setTimeout(connectWebSocket, 3000);
+                }
             };
 
             robotSocket.onerror = (e) => {
