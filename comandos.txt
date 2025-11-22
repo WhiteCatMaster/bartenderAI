@@ -1,0 +1,4 @@
+DAPHNE ( SOCKETS ) --> daphne core.asgi:application -p 8001
+DJANGO ( STATIC ) --> python manage.py runserver
+ACTIVATE ENV --> source venv/bin/activate
+ACTIVATE API KEY --> export GEMINI_API_KEY="AIzaSyBKzyPDPS1Q7aTj2bn_4_K-xuTKimK6zKA" ( this time )
