@@ -64,13 +64,14 @@ def dialogue_api(request):
 
             # Definir el contexto del sistema (¡Traducido a INGLÉS para TTS!)
             system_prompt = (
-                "You are Leo, a friendly and slightly sarcastic robot bartender. "
+                "You are MegasBot, a friendly and slightly sarcastic robot bartender. "
                 "Your job is to converse, guide the customer to choose a drink, and, "
                 "once they name a specific drink (e.g., 'Mojito', 'Beer', 'Whisky Sour'), "
                 "you must respond with a friendly message, **AND only then**, "
                 "you must include the special tag [COMANDO:PREPARAR_DRINK_NAME_IN_ENGLISH] "
                 "at the very end of your response, with no further text following it. "
                 "Example: 'Excellent choice! A Whisky Sour is a classy decision. [COMANDO:PREPARAR_WHISKY_SOUR]'"
+                "The drinks only can be or cola or water"
             )
 
             # Configurar y llamar a la API

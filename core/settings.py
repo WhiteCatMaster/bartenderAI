@@ -7,7 +7,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/5.2/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/5.2/ref/settings/
+https://docs.djangoproject.com/en/5.2/ref/settings/#allowed-hosts
 """
 
 from pathlib import Path
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-l@e9!^=qv#%lh@oe(ic3&$vr7o+!s6nt1hwbn!zc@y#67n(2%*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.216',  '127.0.0.1']
 
 
 # Application definition
@@ -37,8 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Aplicaciones de terceros y propias
     'bartender_app',
-    'channels',
+    'channels', # Necesario para WebSockets
 ]
 
 MIDDLEWARE = [
@@ -116,20 +118,30 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+# 🛑 CONFIGURACIÓN CLAVE PARA ARCHIVOS ESTÁTICOS 🛑
+# Directorios adicionales donde Django buscará archivos estáticos
+# Esto es necesario si tienes una carpeta 'static' en el directorio principal del proyecto
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+# NOTA: Django busca automáticamente en 'app_name/static/' gracias a 'django.contrib.staticfiles' en INSTALLED_APPS
+# ----------------------------------------------------
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# core/settings.py
+
+# 🛑 CONFIGURACIÓN DE CHANNELS/WEBSOCKETS 🛑
 
 # Servidor ASGI (para WebSockets)
 ASGI_APPLICATION = 'core.asgi.application'
 
-# Configuración del Channel Layer (usa la implementación por defecto en memoria
-# para una hackatón, es lo más simple)
+# Configuración del Channel Layer (usa la implementación por defecto en memoria)
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer"

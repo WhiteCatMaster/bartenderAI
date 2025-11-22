@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -26,9 +27,8 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            /* 🔽 AÑADE LA URL DE TU IMAGEN DE FONDO DEL BAR AQUÍ 🔽 */
-            background-image: url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1920');
-            /* ☝️ REEMPLAZA LA URL ARRIBA CON TU IMAGEN ☝️ */
+            /* 🔽 URL de imagen de fondo 🔽 */
+            background-image: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F2a%2Fab%2F99%2F2aab99efee25bc8b2798d71d8cc454a3.jpg&f=1&nofb=1&ipt=fed4bfa85a2294b6539578b93540ff3ee0b50903b277a0d1223c35ac9e58f278');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -57,14 +57,17 @@
         }
 
         /* ============================================
-           BARTENDER PRINCIPAL - AÑADE TUS IMÁGENES AQUÍ
+           BARTENDER PRINCIPAL - 400 VECES MÁS GRANDE
            ============================================ */
         #bartender-container {
             position: relative;
-            width: 600px;
-            height: 800px;
-            max-width: 90vw;
-            max-height: 90vh;
+            width: 240000px;
+            height: 320000px;
+            max-width: 200vw;
+            max-height: 150vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #bartender-image {
@@ -73,19 +76,20 @@
             object-fit: contain;
             transition: opacity 0.1s ease;
             filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
+            display: block;
+            margin: auto;
         }
 
-        /* 🔽 AÑADE TUS IMÁGENES DEL BARTENDER AQUÍ 🔽 */
+        /* 🛑 RUTAS CORREGIDAS: Usando {% static '...' %} y 'Images' en mayúsculas 🛑 */
         .mouth-closed {
-            /* ☝️ Imagen del bartender con boca CERRADA ☝️ */
-            content: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fpng-clipart%2F20220927%2Foriginal%2Fpngtree-bartending-daytime-cocktail-bar-shaker-png-image_8638212.png&f=1&nofb=1&ipt=301875325627158e6bf053a85ff9394a28b6c77c09bb32e35ec858939911855a');
+            /* ☝️ Imagen del bartender con boca CERRADA: barman1.jpg */
+            content: url("{% static 'bartender_app/Images/barman1.png' %}");
         }
 
         .mouth-open {
-            /* ☝️ Imagen del bartender con boca ABIERTA ☝️ */
-            content: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fpng-clipart%2F20221013%2Foriginal%2Fpngtree-bartender-at-work-in-cocktail-evening-png-image_8681089.png&f=1&nofb=1&ipt=cf3aafa7e90df483072d2af1dbb5ba2a161b4ceb3f5b440f4f88360a33040a0a');
+            /* ☝️ Imagen del bartender con boca ABIERTA: barman2.jpg */
+            content: url("{% static 'bartender_app/Images/barman2.png' %}");
         }
-        /* ☝️ REEMPLAZA LAS URLs ARRIBA CON TUS IMÁGENES ☝️ */
 
         /* Panel de control lateral */
         .control-panel {
@@ -253,15 +257,15 @@
             }
 
             #bartender-container {
-                width: 400px;
-                height: 600px;
+                width: 160000px;
+                height: 240000px;
             }
         }
 
         @media (max-width: 480px) {
             #bartender-container {
-                width: 300px;
-                height: 450px;
+                width: 120000px;
+                height: 180000px;
             }
         }
 
@@ -390,8 +394,7 @@
         // --- MANEJO DE CLIC DEL BOTÓN (SOLUCIÓN DEL ERROR 'not-allowed') ---
 
         startVoiceButton.addEventListener('click', () => {
-            // 🛑 SOLUCIÓN CRÍTICA: Cancelar cualquier voz pendiente con un clic
-            // asegura el permiso de usuario (un "gesto") para el TTS.
+            // 🛑 SOLUCIÓN CRÍTICA: Al hacer clic, cancelamos la voz pendiente para obtener permiso del navegador.
             if (synth.speaking) {
                 synth.cancel();
                 stopSpeakingAnimation();
@@ -526,9 +529,7 @@
 
                     if (command.startsWith("PREPARAR")) {
                          statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
-                         setTimeout(() => {
-                             statusOutput.textContent = '✨ Estado del Robot: Trago servido. ¡Disfruta!';
-                         }, 5000);
+                         // Aquí podrías enviar un mensaje de estado al Frontend si deseas mostrar progreso
                     }
                 }
             };
