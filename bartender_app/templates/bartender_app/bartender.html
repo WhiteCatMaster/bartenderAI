@@ -510,11 +510,15 @@
         // --- CONEXIÓN WEBSOCKET ---
 
         function connectWebSocket() {
+            const SERVER_IP = '10.194.222.20';
+            const SERVER_PORT = '8080';
             const host = window.location.host;
             // Usar ws: o wss: dependiendo de tu protocolo (http o https)
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            //const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const protocol = 'ws:';
 
-            robotSocket = new WebSocket(protocol + '//' + host + '/ws/robot/');
+            const websocket_url = protocol + '//' + SERVER_IP + ':' + SERVER_PORT + '/ws/robot/';
+            robotSocket = new WebSocket(websocket_url);
 
             robotSocket.onopen = (e) => {
                 statusOutput.textContent = '✅ Estado del Robot: Conectado. Esperando orden...';

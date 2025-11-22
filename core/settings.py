@@ -25,7 +25,13 @@ SECRET_KEY = 'django-insecure-l@e9!^=qv#%lh@oe(ic3&$vr7o+!s6nt1hwbn!zc@y#67n(2%*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.216',  '127.0.0.1']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '192.168.1.216',
+    '10.194.222.20',  # <-- ADD THIS
+    '*',              # (optional) allow all hosts while testing
+]
 
 
 # Application definition
@@ -143,7 +149,10 @@ ASGI_APPLICATION = 'core.asgi.application'
 
 # Configuración del Channel Layer (usa la implementación por defecto en memoria)
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
