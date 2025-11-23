@@ -1,310 +1,85 @@
-{% load static %}
 <!DOCTYPE html>
+{% load static %}
 <html>
 <head>
+    <meta charset="utf-8">
     <title>The Bartender Robot - Leo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             overflow: hidden;
             position: relative;
+            background: #000;
         }
-
-        /* ============================================
-           FONDO DEL BAR - AÑADE TU IMAGEN AQUÍ
-           ============================================ */
         #bar-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            /* 🔽 URL de imagen de fondo 🔽 */
-            background-image: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F2a%2Fab%2F99%2F2aab99efee25bc8b2798d71d8cc454a3.jpg&f=1&nofb=1&ipt=fed4bfa85a2294b6539578b93540ff3ee0b50903b277a0d1223c35ac9e58f278');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+            background-image: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F2a%2Fab%2F99%2F2aab99efee25bc8b2798d71d8cc454a3.jpg&f=1&nofb=1');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
         }
-
-        /* Overlay oscuro para mejorar contraste */
         #bar-background::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.3);
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
         }
+        .main-container { position: relative; z-index: 2; width: 100%; height: 100vh; display:flex; justify-content:center; align-items:center; }
 
-        /* Contenedor principal */
-        .main-container {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* ============================================
-           BARTENDER PRINCIPAL - 400 VECES MÁS GRANDE
-           ============================================ */
+        /* Contenedor del bartender: escalado 400% */
         #bartender-container {
             position: relative;
-            width: 240000px;
-            height: 320000px;
-            max-width: 200vw;
-            max-height: 150vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 400px; height: 600px; /* tamaño base */
+            transform: scale(4); /* 400% */
+            transform-origin: center center;
+            display: flex; justify-content: center; align-items: center;
+            max-width: 90vw; max-height: 90vh;
         }
 
         #bartender-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: opacity 0.1s ease;
-            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
-            display: block;
-            margin: auto;
+            width: 100%; height: 100%; object-fit: contain; transition: opacity 0.12s ease;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); display:block; margin:auto;
         }
 
-        /* 🛑 RUTAS CORREGIDAS: Usando {% static '...' %} y 'Images' en mayúsculas 🛑 */
-        .mouth-closed {
-            /* ☝️ Imagen del bartender con boca CERRADA: barman1.jpg */
-            content: url("{% static 'bartender_app/Images/barman1.png' %}");
-        }
-
-        .mouth-open {
-            /* ☝️ Imagen del bartender con boca ABIERTA: barman2.jpg */
-            content: url("{% static 'bartender_app/Images/barman2.png' %}");
-        }
-
-        /* Panel de control lateral */
         .control-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(26, 20, 16, 0.92);
-            border: 2px solid rgba(212, 175, 55, 0.4);
-            border-radius: 20px;
-            padding: 25px;
-            width: 320px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(212, 175, 55, 0.2);
-            backdrop-filter: blur(10px);
-            z-index: 3;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
+            position: fixed; top: 20px; right: 20px; background: rgba(26,20,16,0.92);
+            border: 2px solid rgba(212,175,55,0.4); border-radius: 20px; padding: 25px; width: 320px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,175,55,0.2);
+            backdrop-filter: blur(10px); z-index: 3; max-height: calc(100vh - 40px); overflow-y:auto;
         }
 
-        .panel-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #d4af37;
-            margin-bottom: 20px;
-            text-align: center;
-            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.5);
+        .panel-title { font-size:20px; font-weight:700; color:#d4af37; margin-bottom:20px; text-align:center; }
+        #start-voice { width:100%; padding:14px 20px; font-size:15px; font-weight:600; color:#1a1410;
+            background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); border-radius:12px; cursor:pointer;
+            margin-bottom:15px; border:2px solid rgba(212,175,55,0.6);
         }
+        .output-box { background: rgba(42,35,28,0.8); border-left:4px solid #d4af37; padding:12px 15px; margin-bottom:12px; border-radius:10px; color:#e8d4b0; }
+        .label { font-size:11px; font-weight:700; text-transform:uppercase; color:#d4af37; display:block; margin-bottom:5px; }
+        #robot-status { background: rgba(42,35,28,0.9); border:2px solid #d4af37; color:#d4af37; padding:12px 15px; border-radius:10px; font-weight:600; text-align:center; margin-top:15px; }
 
-        /* Botón principal */
-        #start-voice {
-            width: 100%;
-            padding: 14px 20px;
-            font-size: 15px;
-            font-weight: 600;
-            color: #1a1410;
-            background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
-            border: 2px solid rgba(212, 175, 55, 0.6);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            margin-bottom: 15px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        @media (max-width:768px) {
+            .control-panel { position: fixed; bottom:0; right:0; left:0; top:auto; width:100%; border-radius:20px 20px 0 0; max-height:50vh; }
+            #bartender-container { transform: scale(3); width:320px; height:480px; }
         }
-
-        #start-voice:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            background: linear-gradient(135deg, #f4d03f 0%, #d4af37 100%);
-        }
-
-        #start-voice:active {
-            transform: translateY(0);
-        }
-
-        #start-voice:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Cuadros de salida */
-        .output-box {
-            background: rgba(42, 35, 28, 0.8);
-            border-left: 4px solid #d4af37;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            padding: 12px 15px;
-            margin-bottom: 12px;
-            border-radius: 10px;
-            min-height: 50px;
-            font-size: 13px;
-            line-height: 1.5;
-            color: #e8d4b0;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #d4af37;
-            display: block;
-            margin-bottom: 5px;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-        }
-
-        #robot-status {
-            background: rgba(42, 35, 28, 0.9);
-            border: 2px solid #d4af37;
-            color: #d4af37;
-            padding: 12px 15px;
-            border-radius: 10px;
-            font-weight: 600;
-            text-align: center;
-            font-size: 12px;
-            margin-top: 15px;
-            animation: pulse 2s infinite;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3), inset 0 1px 3px rgba(0, 0, 0, 0.3);
-            text-shadow: 0 1px 5px rgba(212, 175, 55, 0.5);
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        /* Indicador de escucha */
-        .listening-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #52c41a;
-            border-radius: 50%;
-            margin-right: 6px;
-            animation: listening 1s infinite;
-            box-shadow: 0 0 10px #52c41a;
-        }
-
-        @keyframes listening {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.3); }
-        }
-
-        /* Logo/Título superior */
-        .top-header {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 3;
-            background: rgba(26, 20, 16, 0.92);
-            border: 2px solid rgba(212, 175, 55, 0.4);
-            padding: 15px 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(212, 175, 55, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .top-header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #d4af37;
-            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.6);
-        }
-
-        /* Responsividad */
-        @media (max-width: 768px) {
-            .control-panel {
-                position: fixed;
-                bottom: 0;
-                right: 0;
-                left: 0;
-                top: auto;
-                width: 100%;
-                border-radius: 20px 20px 0 0;
-                max-height: 50vh;
-            }
-
-            .top-header {
-                top: 10px;
-                left: 10px;
-                padding: 10px 15px;
-            }
-
-            .top-header h1 {
-                font-size: 18px;
-            }
-
-            #bartender-container {
-                width: 160000px;
-                height: 240000px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #bartender-container {
-                width: 120000px;
-                height: 180000px;
-            }
-        }
-
-        /* Scrollbar personalizado */
-        .control-panel::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .control-panel::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .control-panel::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
-        }
-
-        .control-panel::-webkit-scrollbar-thumb:hover {
-            background: #764ba2;
+        @media (max-width:480px) {
+            #bartender-container { transform: scale(2.2); width:240px; height:360px; }
         }
     </style>
 </head>
 <body>
     <div id="bar-background"></div>
 
-    <div class="top-header">
-        <h1>🤖 Bartender MegasXLR</h1>
+    <div class="top-header" style="position:fixed; top:20px; left:20px; z-index:3; background:rgba(26,20,16,0.92); padding:15px 25px; border-radius:15px; border:2px solid rgba(212,175,55,0.4);">
+        <h1 style="color:#d4af37; font-size:22px; margin:0;">🤖 Bartender MegasXLR</h1>
     </div>
 
     <div class="main-container">
         <div id="bartender-container">
-            <img id="bartender-image" class="mouth-closed" alt="Bartender Robot">
+            <img id="bartender-image" alt="Bartender Robot" src="{% static 'bartender_app/Images/barman1.png' %}">
         </div>
     </div>
 
     <div class="control-panel">
         <div class="panel-title">Control Panel</div>
-
         <button id="start-voice">🎤 Habilitar Escucha</button>
 
         <div class="output-box">
@@ -321,240 +96,162 @@
     </div>
 
     <script>
+        const IMG_CLOSED = "{% static 'bartender_app/Images/barman1.png' %}";
+        const IMG_OPEN = "{% static 'bartender_app/Images/barman2.png' %}";
+        const IMG_WORKING = "{% static 'bartender_app/Images/barman_working.png' %}";
+
         const startVoiceButton = document.getElementById('start-voice');
         const userOutput = document.getElementById('user-output');
         const bartenderOutput = document.getElementById('bartender-output');
         const bartenderImage = document.getElementById('bartender-image');
         const statusOutput = document.getElementById('robot-status');
 
-        // Variables de estado
         let isListening = false;
-        let mouthInterval;
-        let robotSocket = null;
+        let mouthInterval = null;
+        let workingTimer = null;
+        let prevSrc = null;
+        let synth = window.speechSynthesis;
+        let ttsVoice = null;
 
-        // 1. Inicializa la Web Speech API (Reconocimiento de voz)
+        bartenderImage.src = bartenderImage.src || IMG_CLOSED;
+
+        function loadVoices() {
+            const voices = synth.getVoices();
+            ttsVoice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0] || null;
+        }
+        if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
+        loadVoices();
+
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'es-ES'; // Idioma de reconocimiento: español
+        recognition.lang = 'es-ES';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
-        // 2. Inicializa la Síntesis de Voz (Text-to-Speech)
-        const synth = window.speechSynthesis;
-        let ttsVoice = null;
-
-        // Carga de voces
-        function loadVoices() {
-            // Intenta encontrar una voz en inglés de EE. UU.
-            const voices = synth.getVoices();
-            // Fallback a cualquier voz en inglés o la primera disponible
-            ttsVoice = voices.find(voice => voice.lang === 'en-US') || voices.find(voice => voice.lang.startsWith('en')) || voices[0];
-            if (!ttsVoice) {
-                console.warn("No se encontraron voces disponibles en inglés. Se usará la voz predeterminada del navegador.");
-            }
-        }
-
-        // Intenta cargar las voces inmediatamente, o espera el evento 'voiceschanged'
-        if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = loadVoices;
-        }
-        loadVoices(); // Llama inicialmente
-
-        // --- MANEJO DE ESTADOS DE ESCUCHA CONTINUA ---
-
-        function startContinuousListening() {
-            if (isListening) return;
-
-            isListening = true;
-            recognition.start();
-
-            startVoiceButton.innerHTML = '<span class="listening-indicator"></span>Escuchando... (Clic para DETENER)';
-            startVoiceButton.disabled = false;
-            userOutput.innerHTML = '<span class="listening-indicator"></span>Escuchando continuamente...';
-        }
-
-        // El bucle de reinicio automático
-        recognition.onend = () => {
-            if (isListening) {
-                recognition.start();
-                userOutput.innerHTML = '<span class="listening-indicator"></span>Escuchando continuamente...';
-            } else {
-                startVoiceButton.innerHTML = "🎤 Escucha Detenida (Clic para REINICIAR)";
-                startVoiceButton.disabled = false;
-            }
-        };
-
-        recognition.onerror = (event) => {
-            console.error('Error de reconocimiento:', event.error);
-            // Intentar reiniciar si el error es de red o algo temporal y queremos seguir escuchando
-            if (isListening) {
-                 setTimeout(() => recognition.start(), 1000);
-            }
-        };
-
-        // --- MANEJO DE CLIC DEL BOTÓN (SOLUCIÓN DEL ERROR 'not-allowed') ---
-
-        startVoiceButton.addEventListener('click', () => {
-            // 🛑 SOLUCIÓN CRÍTICA: Al hacer clic, cancelamos la voz pendiente para obtener permiso del navegador.
-            if (synth.speaking) {
-                synth.cancel();
-                stopSpeakingAnimation();
-            }
-
-            if (isListening) {
-                isListening = false;
-                recognition.stop();
-            } else {
-                startContinuousListening();
-            }
-        });
-
-        // --- MANEJO DE RESULTADO DE VOZ ---
-
         recognition.onresult = (event) => {
-            // Detenemos la escucha después de un resultado
             isListening = false;
             recognition.stop();
-
             const speechResult = event.results[0][0].transcript;
             userOutput.textContent = speechResult;
-
             sendToDjango(speechResult);
         };
 
-        // --- FUNCIÓN AJAX ---
+        recognition.onend = () => {
+            if (isListening) recognition.start();
+            else startVoiceButton.innerHTML = "🎤 Escucha Detenida (Clic para REINICIAR)";
+        };
+
+        recognition.onerror = (e) => {
+            console.error('Recognition error', e);
+            if (isListening) setTimeout(() => recognition.start(), 1000);
+        };
+
+        startVoiceButton.addEventListener('click', () => {
+            if (synth.speaking) { synth.cancel(); stopSpeakingAnimation(); }
+            if (isListening) { isListening = false; recognition.stop(); }
+            else startContinuousListening();
+        });
+
+        function startContinuousListening() {
+            if (isListening) return;
+            isListening = true;
+            recognition.start();
+            startVoiceButton.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:6px;"></span>Escuchando... (Clic para DETENER)';
+            userOutput.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:6px;"></span>Escuchando continuamente...';
+        }
 
         async function sendToDjango(message) {
             bartenderOutput.textContent = '⏳ Procesando la orden...';
-
             try {
-                // Asumiendo que la API de Django está en la misma ruta relativa
-                const response = await fetch('/api/dialogue/', {
+                const res = await fetch('/api/dialogue/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message })
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ message })
                 });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                handleBartenderResponse(data.response);
-
-            } catch (error) {
-                console.error('Error al comunicarse con la API de Django:', error);
+                if (!res.ok) throw new Error('Status ' + res.status);
+                const data = await res.json();
+                handleBartenderResponse(data.response || '');
+            } catch (err) {
+                console.error('Error API:', err);
                 bartenderOutput.textContent = '⚠️ Vaya, parece que hay un problema de conexión.';
-                reactivateListening();
+                setTimeout(() => startContinuousListening(), 500);
             }
         }
 
-        // --- ANIMACIÓN DE LA BOCA Y LÓGICA DE VOZ (TTS) ---
-
-        function reactivateListening() {
-            // Pequeño retardo para asegurar que la animación/voz ha terminado
-            setTimeout(() => {
-                startContinuousListening();
-            }, 500);
+        function startSpeakingAnimation() {
+            clearInterval(mouthInterval);
+            mouthInterval = setInterval(() => {
+                bartenderImage.src = (Math.random() > 0.5) ? IMG_OPEN : IMG_CLOSED;
+            }, 150);
+        }
+        function stopSpeakingAnimation() {
+            clearInterval(mouthInterval);
+            mouthInterval = null;
+            bartenderImage.src = IMG_CLOSED;
         }
 
         function handleBartenderResponse(responseText) {
             bartenderOutput.textContent = responseText;
+            if (synth.speaking) synth.cancel();
 
-            // 🎙️ INICIA EL TTS
-            if (synth.speaking) {
-                synth.cancel(); // Prevenir colisiones
-            }
+            const utterance = new SpeechSynthesisUtterance(responseText || '');
+            utterance.lang = 'en-US';
+            if (ttsVoice) utterance.voice = ttsVoice;
+            utterance.rate = 1.0;
 
-            const utterance = new SpeechSynthesisUtterance(responseText);
-            utterance.lang = 'en-US'; // Forzamos a inglés como solicitaste
-            utterance.voice = ttsVoice;
-            utterance.rate = 1.0; // Velocidad normal
-
-            utterance.onstart = () => {
-                startSpeakingAnimation();
-            };
-
-            utterance.onend = () => {
-                stopSpeakingAnimation();
-                reactivateListening(); // Volver a escuchar después de terminar de hablar
-            };
-
-            utterance.onerror = (event) => {
-                console.error('SpeechSynthesis Utterance Error:', event);
-                stopSpeakingAnimation();
-                reactivateListening();
-            };
+            utterance.onstart = () => startSpeakingAnimation();
+            utterance.onend = () => { stopSpeakingAnimation(); setTimeout(() => startContinuousListening(), 200); };
+            utterance.onerror = () => { stopSpeakingAnimation(); setTimeout(() => startContinuousListening(), 200); };
 
             synth.speak(utterance);
         }
 
-        function startSpeakingAnimation() {
-            // Asegurarse de que solo haya un intervalo de animación activo
-            clearInterval(mouthInterval);
-
-            mouthInterval = setInterval(() => {
-                // Alterna entre las clases para cambiar la imagen
-                if (Math.random() > 0.5) {
-                    bartenderImage.className = 'mouth-open';
-                } else {
-                    bartenderImage.className = 'mouth-closed';
-                }
-            }, 150);
+        function showTemporaryImage(durationSeconds = 60) {
+            if (workingTimer) {
+                clearTimeout(workingTimer);
+                workingTimer = null;
+            }
+            prevSrc = bartenderImage.src;
+            if (mouthInterval) { clearInterval(mouthInterval); mouthInterval = null; }
+            bartenderImage.src = IMG_WORKING;
+            workingTimer = setTimeout(() => {
+                bartenderImage.src = prevSrc || IMG_CLOSED;
+                workingTimer = null;
+            }, durationSeconds * 1000);
         }
-
-        function stopSpeakingAnimation() {
-            clearInterval(mouthInterval);
-            bartenderImage.className = 'mouth-closed';
-        }
-
-        // --- CONEXIÓN WEBSOCKET ---
 
         function connectWebSocket() {
-            const SERVER_IP = '10.194.222.20';
-            const SERVER_PORT = '8080';
             const host = window.location.host;
-            // Usar ws: o wss: dependiendo de tu protocolo (http o https)
-            //const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const protocol = 'ws:';
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const robotSocket = new WebSocket(`${protocol}//${host}/ws/robot/`);
 
-            const websocket_url = protocol + '//' + SERVER_IP + ':' + SERVER_PORT + '/ws/robot/';
-            robotSocket = new WebSocket(websocket_url);
-
-            robotSocket.onopen = (e) => {
-                statusOutput.textContent = '✅ Estado del Robot: Conectado. Esperando orden...';
-            };
+            robotSocket.onopen = () => { statusOutput.textContent = '✅ Estado del Robot: Conectado. Esperando orden...'; };
 
             robotSocket.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-
-                if (data.type === 'command') {
-                    const command = data.command;
-                    statusOutput.textContent = `🎯 Estado del Robot: Recibida la orden: ${command}`;
-
-                    if (command.startsWith("PREPARAR")) {
-                         statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
-                         // Aquí podrías enviar un mensaje de estado al Frontend si deseas mostrar progreso
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'command') {
+                        const command = data.command;
+                        statusOutput.textContent = `🎯 Estado del Robot: Recibida la orden: ${command}`;
+                        // Mostrar imagen "working" por 60 segundos al recibir comando
+                        showTemporaryImage(60);
+                        if (command.startsWith("PREPARAR")) {
+                            statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
+                        }
                     }
+                } catch (err) {
+                    console.error('WS message parse error', err);
                 }
             };
 
             robotSocket.onclose = (e) => {
                 statusOutput.textContent = '🔄 Estado del Robot: Desconectado. Intentando reconectar...';
-                // Solo intentar reconectar si no es un cierre normal (código 1000)
-                if (e.code !== 1000) {
-                    setTimeout(connectWebSocket, 3000);
-                }
+                if (e.code !== 1000) setTimeout(connectWebSocket, 3000);
             };
-
-            robotSocket.onerror = (e) => {
-                console.error('WebSocket Error:', e);
-            };
+            robotSocket.onerror = (e) => console.error('WebSocket Error:', e);
         }
 
-        // *** ARRANQUE INICIAL ***
         connectWebSocket();
         startContinuousListening();
-
     </script>
 </body>
 </html>
