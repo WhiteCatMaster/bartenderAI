@@ -1,35 +1,27 @@
-<!DOCTYPE html>
-{% load static %}
 <html>
+{% load static %}
 <head>
     <meta charset="utf-8">
     <title>The Bartender Robot - Leo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            overflow: hidden;
-            position: relative;
-            background: #000;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-height: 100vh; overflow: hidden; position: relative; background: #000; }
+
         #bar-background {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
             background-image: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F2a%2Fab%2F99%2F2aab99efee25bc8b2798d71d8cc454a3.jpg&f=1&nofb=1');
             background-size: cover; background-position: center; background-repeat: no-repeat;
         }
-        #bar-background::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-        }
+        #bar-background::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.3); }
+
         .main-container { position: relative; z-index: 2; width: 100%; height: 100vh; display:flex; justify-content:center; align-items:center; }
 
-        /* Contenedor del bartender: escalado 400% */
+        /* Contenedor del bartender: escalado 400% (más seguro) */
         #bartender-container {
             position: relative;
-            width: 400px; height: 600px; /* tamaño base */
-            transform: scale(4); /* 400% */
+            width: 400px; height: 600px;
+            transform: scale(4);
             transform-origin: center center;
             display: flex; justify-content: center; align-items: center;
             max-width: 90vw; max-height: 90vh;
@@ -39,6 +31,10 @@
             width: 100%; height: 100%; object-fit: contain; transition: opacity 0.12s ease;
             filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); display:block; margin:auto;
         }
+
+        /* Clases para alternar boca (se usa className en JS) */
+        .mouth-closed { /* si prefieres CSS-replace, pero también trabajamos con src en JS */ }
+        .mouth-open { }
 
         .control-panel {
             position: fixed; top: 20px; right: 20px; background: rgba(26,20,16,0.92);
@@ -74,7 +70,7 @@
 
     <div class="main-container">
         <div id="bartender-container">
-            <img id="bartender-image" alt="Bartender Robot" src="{% static 'bartender_app/Images/barman1.png' %}">
+            <img id="bartender-image" class="mouth-closed" alt="Bartender Robot" src="{% static 'bartender_app/Images/barman1.png' %}">
         </div>
     </div>
 
@@ -96,162 +92,180 @@
     </div>
 
     <script>
-        const IMG_CLOSED = "{% static 'bartender_app/Images/barman1.png' %}";
-        const IMG_OPEN = "{% static 'bartender_app/Images/barman2.png' %}";
-        const IMG_WORKING = "{% static 'bartender_app/Images/barman_working.png' %}";
+    // Rutas de imágenes (usar {% static %})
+    const IMG_CLOSED = "{% static 'bartender_app/Images/barman1.png' %}";
+    const IMG_OPEN = "{% static 'bartender_app/Images/barman2.png' %}";
+    const IMG_WORKING = "{% static 'bartender_app/Images/barman_working.png' %}";
 
-        const startVoiceButton = document.getElementById('start-voice');
-        const userOutput = document.getElementById('user-output');
-        const bartenderOutput = document.getElementById('bartender-output');
-        const bartenderImage = document.getElementById('bartender-image');
-        const statusOutput = document.getElementById('robot-status');
+    const startVoiceButton = document.getElementById('start-voice');
+    const userOutput = document.getElementById('user-output');
+    const bartenderOutput = document.getElementById('bartender-output');
+    const bartenderImage = document.getElementById('bartender-image');
+    const statusOutput = document.getElementById('robot-status');
 
-        let isListening = false;
-        let mouthInterval = null;
-        let workingTimer = null;
-        let prevSrc = null;
-        let synth = window.speechSynthesis;
-        let ttsVoice = null;
+    let isListening = false;
+    let mouthInterval = null;
+    let workingTimer = null;
+    let prevSrc = null;
+    let prevClass = null;
+    const synth = window.speechSynthesis;
+    let ttsVoice = null;
 
-        bartenderImage.src = bartenderImage.src || IMG_CLOSED;
+    // Asegurar src inicial
+    bartenderImage.src = bartenderImage.src || IMG_CLOSED;
 
-        function loadVoices() {
-            const voices = synth.getVoices();
-            ttsVoice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0] || null;
+    function loadVoices() {
+        const voices = synth.getVoices();
+        ttsVoice = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang && v.lang.startsWith('en')) || voices[0] || null;
+    }
+    if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
+    loadVoices();
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+        isListening = false;
+        recognition.stop();
+        const speechResult = event.results[0][0].transcript;
+        userOutput.textContent = speechResult;
+        sendToDjango(speechResult);
+    };
+
+    recognition.onend = () => {
+        if (isListening) recognition.start();
+        else startVoiceButton.innerHTML = "🎤 Escucha Detenida (Clic para REINICIAR)";
+    };
+
+    recognition.onerror = (e) => {
+        console.error('Recognition error', e);
+        if (isListening) setTimeout(() => recognition.start(), 1000);
+    };
+
+    startVoiceButton.addEventListener('click', () => {
+        if (synth.speaking) { synth.cancel(); stopSpeakingAnimation(); }
+        if (isListening) { isListening = false; recognition.stop(); }
+        else startContinuousListening();
+    });
+
+    function startContinuousListening() {
+        if (isListening) return;
+        isListening = true;
+        recognition.start();
+        startVoiceButton.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:6px;"></span>Escuchando... (Clic para DETENER)';
+        userOutput.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:6px;"></span>Escuchando continuamente...';
+    }
+
+    async function sendToDjango(message) {
+        bartenderOutput.textContent = '⏳ Procesando la orden...';
+        try {
+            const res = await fetch('/api/dialogue/', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ message })
+            });
+            if (!res.ok) throw new Error('Status ' + res.status);
+            const data = await res.json();
+            handleBartenderResponse(data.response || '');
+        } catch (err) {
+            console.error('Error API:', err);
+            bartenderOutput.textContent = '⚠️ Vaya, parece que hay un problema de conexión.';
+            setTimeout(() => startContinuousListening(), 500);
         }
-        if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
-        loadVoices();
+    }
 
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'es-ES';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
+    function startSpeakingAnimation() {
+        clearInterval(mouthInterval);
+        mouthInterval = setInterval(() => {
+            bartenderImage.className = (Math.random() > 0.5) ? 'mouth-open' : 'mouth-closed';
+            // Alternativamente actualizar src si prefieres:
+            // bartenderImage.src = (Math.random() > 0.5) ? IMG_OPEN : IMG_CLOSED;
+        }, 150);
+    }
+    function stopSpeakingAnimation() {
+        clearInterval(mouthInterval);
+        mouthInterval = null;
+        bartenderImage.className = 'mouth-closed';
+        // bartenderImage.src = IMG_CLOSED;
+    }
 
-        recognition.onresult = (event) => {
-            isListening = false;
-            recognition.stop();
-            const speechResult = event.results[0][0].transcript;
-            userOutput.textContent = speechResult;
-            sendToDjango(speechResult);
-        };
+    function handleBartenderResponse(responseText) {
+        bartenderOutput.textContent = responseText;
+        if (synth.speaking) synth.cancel();
 
-        recognition.onend = () => {
-            if (isListening) recognition.start();
-            else startVoiceButton.innerHTML = "🎤 Escucha Detenida (Clic para REINICIAR)";
-        };
+        const utterance = new SpeechSynthesisUtterance(responseText || '');
+        utterance.lang = 'en-US';
+        if (ttsVoice) utterance.voice = ttsVoice;
+        utterance.rate = 1.0;
 
-        recognition.onerror = (e) => {
-            console.error('Recognition error', e);
-            if (isListening) setTimeout(() => recognition.start(), 1000);
-        };
+        utterance.onstart = () => startSpeakingAnimation();
+        utterance.onend = () => { stopSpeakingAnimation(); setTimeout(() => startContinuousListening(), 200); };
+        utterance.onerror = () => { stopSpeakingAnimation(); setTimeout(() => startContinuousListening(), 200); };
 
-        startVoiceButton.addEventListener('click', () => {
-            if (synth.speaking) { synth.cancel(); stopSpeakingAnimation(); }
-            if (isListening) { isListening = false; recognition.stop(); }
-            else startContinuousListening();
-        });
+        synth.speak(utterance);
+    }
 
-        function startContinuousListening() {
-            if (isListening) return;
-            isListening = true;
-            recognition.start();
-            startVoiceButton.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:6px;"></span>Escuchando... (Clic para DETENER)';
-            userOutput.innerHTML = '<span style="display:inline-block;width:8px;height:8px;background:#52c41a;border-radius:50%;margin-right:6px;"></span>Escuchando continuamente...';
+    // Muestra imagen temporal "working" y restaura anterior
+    function showTemporaryImage(durationSeconds = 60) {
+        if (workingTimer) {
+            clearTimeout(workingTimer);
+            workingTimer = null;
         }
+        prevSrc = bartenderImage.src;
+        prevClass = bartenderImage.className;
+        if (mouthInterval) { clearInterval(mouthInterval); mouthInterval = null; }
 
-        async function sendToDjango(message) {
-            bartenderOutput.textContent = '⏳ Procesando la orden...';
+        // Forzar imagen working (quitar clases para que src sea visible en todos los navegadores)
+        bartenderImage.className = '';
+        bartenderImage.src = IMG_WORKING;
+
+        workingTimer = setTimeout(() => {
+            // Restaurar clase y/o src previa
+            if (prevClass) bartenderImage.className = prevClass;
+            bartenderImage.src = prevSrc || IMG_CLOSED;
+            workingTimer = null;
+        }, durationSeconds * 1000);
+    }
+
+    // WebSocket
+    function connectWebSocket() {
+        const SERVER_IP = '10.194.222.20';
+        const SERVER_PORT = '8080';
+        const protocol = 'ws:'; // o 'wss:' si corresponde
+        const websocket_url = protocol + '//' + SERVER_IP + ':' + SERVER_PORT + '/ws/robot/';
+        const robotSocket = new WebSocket(websocket_url);
+
+        robotSocket.onopen = () => { statusOutput.textContent = '✅ Estado del Robot: Conectado. Esperando orden...'; };
+
+        robotSocket.onmessage = (e) => {
             try {
-                const res = await fetch('/api/dialogue/', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({ message })
-                });
-                if (!res.ok) throw new Error('Status ' + res.status);
-                const data = await res.json();
-                handleBartenderResponse(data.response || '');
-            } catch (err) {
-                console.error('Error API:', err);
-                bartenderOutput.textContent = '⚠️ Vaya, parece que hay un problema de conexión.';
-                setTimeout(() => startContinuousListening(), 500);
-            }
-        }
-
-        function startSpeakingAnimation() {
-            clearInterval(mouthInterval);
-            mouthInterval = setInterval(() => {
-                bartenderImage.src = (Math.random() > 0.5) ? IMG_OPEN : IMG_CLOSED;
-            }, 150);
-        }
-        function stopSpeakingAnimation() {
-            clearInterval(mouthInterval);
-            mouthInterval = null;
-            bartenderImage.src = IMG_CLOSED;
-        }
-
-        function handleBartenderResponse(responseText) {
-            bartenderOutput.textContent = responseText;
-            if (synth.speaking) synth.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(responseText || '');
-            utterance.lang = 'en-US';
-            if (ttsVoice) utterance.voice = ttsVoice;
-            utterance.rate = 1.0;
-
-            utterance.onstart = () => startSpeakingAnimation();
-            utterance.onend = () => { stopSpeakingAnimation(); setTimeout(() => startContinuousListening(), 200); };
-            utterance.onerror = () => { stopSpeakingAnimation(); setTimeout(() => startContinuousListening(), 200); };
-
-            synth.speak(utterance);
-        }
-
-        function showTemporaryImage(durationSeconds = 60) {
-            if (workingTimer) {
-                clearTimeout(workingTimer);
-                workingTimer = null;
-            }
-            prevSrc = bartenderImage.src;
-            if (mouthInterval) { clearInterval(mouthInterval); mouthInterval = null; }
-            bartenderImage.src = IMG_WORKING;
-            workingTimer = setTimeout(() => {
-                bartenderImage.src = prevSrc || IMG_CLOSED;
-                workingTimer = null;
-            }, durationSeconds * 1000);
-        }
-
-        function connectWebSocket() {
-            const host = window.location.host;
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const robotSocket = new WebSocket(`${protocol}//${host}/ws/robot/`);
-
-            robotSocket.onopen = () => { statusOutput.textContent = '✅ Estado del Robot: Conectado. Esperando orden...'; };
-
-            robotSocket.onmessage = (e) => {
-                try {
-                    const data = JSON.parse(e.data);
-                    if (data.type === 'command') {
-                        const command = data.command;
-                        statusOutput.textContent = `🎯 Estado del Robot: Recibida la orden: ${command}`;
-                        // Mostrar imagen "working" por 60 segundos al recibir comando
-                        showTemporaryImage(60);
-                        if (command.startsWith("PREPARAR")) {
-                            statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
-                        }
+                const data = JSON.parse(e.data);
+                if (data.type === 'command') {
+                    const command = data.command;
+                    statusOutput.textContent = `🎯 Estado del Robot: Recibida la orden: ${command}`;
+                    // Mostrar imagen "working" por 60 segundos al recibir comando
+                    showTemporaryImage(60);
+                    if (command.startsWith("PREPARAR")) {
+                        statusOutput.textContent += ' - ¡Iniciando mezcla! 🍹';
                     }
-                } catch (err) {
-                    console.error('WS message parse error', err);
                 }
-            };
+            } catch (err) {
+                console.error('WS message parse error', err);
+            }
+        };
 
-            robotSocket.onclose = (e) => {
-                statusOutput.textContent = '🔄 Estado del Robot: Desconectado. Intentando reconectar...';
-                if (e.code !== 1000) setTimeout(connectWebSocket, 3000);
-            };
-            robotSocket.onerror = (e) => console.error('WebSocket Error:', e);
-        }
+        robotSocket.onclose = (e) => {
+            statusOutput.textContent = '🔄 Estado del Robot: Desconectado. Intentando reconectar...';
+            if (e.code !== 1000) setTimeout(connectWebSocket, 3000);
+        };
+        robotSocket.onerror = (e) => console.error('WebSocket Error:', e);
+    }
 
-        connectWebSocket();
-        startContinuousListening();
+    // Inicio
+    connectWebSocket();
+    startContinuousListening();
     </script>
 </body>
 </html>
